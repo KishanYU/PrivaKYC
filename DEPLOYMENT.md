@@ -21,18 +21,32 @@ The project is organized for multi-platform deployment:
 - **Start Command**: `npm start` (or `node src/app.js`)
 
 ### 2. Environment Variables (Backend)
-Add the following in the Render Dashboard:
-- `PORT`: `5000` (or leave blank for Render default)
-- `MONGO_URI`: Your MongoDB connection string.
-- `NODE_ENV`: `production`
-- `JWT_SECRET`: A long random string.
-- `ALGOD_SERVER`: `https://testnet-api.algonode.cloud` (example)
-- `ALGOD_PORT`: `443`
-- `ALGOD_TOKEN`: (Leave empty for Algonode)
-- `N8N_WEBHOOK_URL`: Your n8n workflow URL.
-- `BANK_EMAIL`: `pavu586@gmail.com`
-- `EMAIL_USER`: Your SMTP user.
-- `EMAIL_PASS`: Your SMTP password.
+Add the following in the Render Dashboard or create a `backend/.env` file:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection_string
+CLIENT_URL=https://your-frontend-vercel-url.vercel.app
+
+ALGOD_SERVER=https://testnet-api.algonode.cloud
+ALGOD_PORT=443
+ALGOD_TOKEN=
+ALGOD_REGISTRY_ADDRESS=your_algorand_app_id
+
+INDEXER_SERVER=https://testnet-idx.algonode.cloud
+INDEXER_PORT=443
+INDEXER_TOKEN=
+
+PERA_WALLET_NETWORK=testnet
+N8N_WEBHOOK_URL=your_n8n_webhook_url
+JWT_SECRET=your_secure_random_jwt_secret
+NODE_ENV=production
+
+# Email Notifications (Optional for demo)
+BANK_EMAIL=pavu586@gmail.com
+EMAIL_USER=your_smtp_user
+EMAIL_PASS=your_smtp_password
+```
 
 ---
 
@@ -47,9 +61,12 @@ Add the following in the Render Dashboard:
 
 ### 2. Environment Variables (Frontend)
 Add the following in the Vercel Dashboard:
-- `VITE_API_BASE_URL`: The URL of your **Render backend** service + `/api` (e.g., `https://privakyc-backend.onrender.com/api`).
-- `VITE_STATUS_URL`: Your backend URL + `/api/compliance`.
-- `VITE_N8N_REVOKE_WEBHOOK`: Your n8n revocation webhook.
+
+```env
+VITE_API_BASE_URL=https://your-backend-render-url.onrender.com/api
+VITE_STATUS_URL=https://your-backend-render-url.onrender.com/api/compliance
+VITE_N8N_REVOKE_WEBHOOK=https://jckirthi.app.n8n.cloud/webhook/revoke-token
+```
 
 ---
 
@@ -57,4 +74,4 @@ Add the following in the Vercel Dashboard:
 1. **Push to GitHub**: This repo contains both folders.
 2. **Render** will automatically pick up changes from the `backend` folder.
 3. **Vercel** will automatically pick up changes from the `frontend` folder.
-4. **CORS**: Ensure your Render backend allows the Vercel domain (already handled in `app.js` with permissive CORS for demo).
+4. **CORS**: Ensure your Render backend allows the Vercel domain (handled in `app.js`).
