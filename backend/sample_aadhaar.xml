@@ -1,0 +1,6 @@
+<OfflinePaperlessKyc>
+  <UidData>
+    <Poi name="Demo User" dob="1990-01-01" gender="M" />
+    <Poa state="Karnataka" />
+  </UidData>
+</OfflinePaperlessKyc>

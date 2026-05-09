@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AadhaarXML>
+  <PrintLetterBarcodeData uid="123456789012" name="Mock User" gender="M" yob="1995" dob="1995-07-21" careof="S/O Mock Father" street="MG Road" loc="Bangalore" vtc="Bengaluru" dist="Bangalore" subdist="Bangalore North" state="Karnataka" pc="560001" />
+  <Poa>
+    <CoAddress>MG Road</CoAddress>
+    <House>42</House>
+    <Street>Example Street</Street>
+    <Loc>Bangalore</Loc>
+    <Vtc>Bengaluru</Vtc>
+    <Dist>Bangalore</Dist>
+    <State>Karnataka</State>
+    <Pc>560001</Pc>
+  </Poa>
+</AadhaarXML>

@@ -1,0 +1,32 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="govGradient" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0f5132" stop-opacity="0.8" />
+      <stop offset="100%" stop-color="#66bb6a" stop-opacity="0.3" />
+    </linearGradient>
+    <linearGradient id="softGlow" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#d1fae5" stop-opacity="0.1" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f8faf4" />
+  <path d="M0 220C280 140 520 180 760 90C1000 0 1280 60 1600 40V900H0V220Z" fill="url(#govGradient)" />
+  <path d="M0 680C260 730 540 670 820 760C1100 850 1380 780 1600 820V900H0V680Z" fill="#e6f4e8" />
+  <circle cx="360" cy="240" r="120" fill="#ffffff" opacity="0.65" />
+  <circle cx="1240" cy="160" r="90" fill="#d1fae5" opacity="0.9" />
+  <rect x="240" y="440" width="420" height="220" rx="28" fill="#ffffff" opacity="0.82" />
+  <rect x="900" y="340" width="360" height="180" rx="32" fill="#ffffff" opacity="0.7" />
+  <path d="M152 160H448" stroke="#245e3b" stroke-width="18" stroke-linecap="round" opacity="0.8" />
+  <path d="M1450 310H1530" stroke="#375d45" stroke-width="12" stroke-linecap="round" opacity="0.8" />
+  <path d="M540 200C640 260 720 190 810 240" stroke="#ffffff" stroke-width="14" stroke-linecap="round" opacity="0.8" />
+  <g opacity="0.25">
+    <rect x="960" y="120" width="420" height="18" rx="9" fill="#ffffff" />
+    <rect x="960" y="160" width="360" height="18" rx="9" fill="#ffffff" />
+    <rect x="960" y="200" width="300" height="18" rx="9" fill="#ffffff" />
+  </g>
+  <path d="M420 640H1060" stroke="#84cc9c" stroke-width="6" stroke-dasharray="20 16" opacity="0.7" />
+  <path d="M420 680H1060" stroke="#84cc9c" stroke-width="6" stroke-dasharray="20 16" opacity="0.7" />
+  <path d="M420 720H1060" stroke="#84cc9c" stroke-width="6" stroke-dasharray="20 16" opacity="0.7" />
+  <rect x="1080" y="520" width="320" height="200" rx="28" fill="url(#softGlow)" />
+</svg>

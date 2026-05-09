@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<OfflinePaperlessKyc referenceId="1234567890123456789">
+    <UidData>
+        <Poi name="Arjun Kumar" dob="1995-08-15" gender="M" e-mail="abc..." mobile="xyz..."/>
+        <Poa careof="S/O Mahesh Kumar" state="Karnataka" country="India" dist="Bengaluru" pc="560001"/>
+    </UidData>
+    <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
+        <SignedInfo>
+            <CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/>
+            <SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+            <Reference URI="">
+                <Transforms>
+                    <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+                </Transforms>
+                <DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                <DigestValue>DummyDigestValue=</DigestValue>
+            </Reference>
+        </SignedInfo>
+        <SignatureValue>DummySignatureValueVdfdsf=</SignatureValue>
+        <KeyInfo>
+            <X509Data>
+                <X509Certificate>MIIDDummyCertificateData</X509Certificate>
+            </X509Data>
+        </KeyInfo>
+    </Signature>
+</OfflinePaperlessKyc>

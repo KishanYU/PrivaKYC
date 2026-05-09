@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+**/node_modules/
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+**/.env
+
+# Build and Production
+dist/
+build/
+!backend/build/
+**/dist/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS and Editors
+.DS_Store
+.vscode/
+.idea/
+
+# Demo Specifics
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# ZK Proofs (Don't leak generated proofs)
+zk-core/proofs/*
+!zk-core/proofs/.gitkeep

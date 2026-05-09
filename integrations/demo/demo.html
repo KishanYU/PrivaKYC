@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PrivaKYC - Live Demo Prototype</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background: #0f172a; color: white; }
+        .card { background: #1e293b; padding: 20px; margin-bottom: 20px; border-radius: 8px; border: 1px solid #334155; }
+        button { background: #3b82f6; color: white; border: none; padding: 10px 15px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        button:hover { background: #2563eb; }
+        .danger { background: #ef4444; }
+        .danger:hover { background: #dc2828; }
+        .success { background: #10b981; }
+        pre { background: #000; padding: 10px; border-radius: 5px; overflow-x: auto; color: #10b981; }
+        input[type="file"], input[type="number"] { margin-bottom: 10px; }
+        .hidden { display: none; }
+    </style>
+</head>
+<body>
+
+    <h1>🛡️ Minimal Live UI</h1>
+    <p></p>
+
+    <!-- STEP 1 -> Upload XML -->
+    <div class="card">
+        <h3>1. Upload Aadhaar Offline XML</h3>
+        <p>Proves we verify UIDAI signature but NEVER store the Aadhaar number.</p>
+        <input type="file" id="xmlFile" accept=".xml">
+        <br>
+        <button onclick="uploadXml()">Upload & Verify XML</button>
+        <pre id="out1"></pre>
+    </div>
+
+    <!-- STEP 2 -> Extract ZK & Register -->
+    <div class="card id="step2">
+        <h3>2. Generate ZK Proof & Anchor to Blockchain</h3>
+        <p>Proves we build a ZK Proof and bind a Nullifier to Algorand Testnet (No raw data on chain).</p>
+        <input type="number" id="ageInput" value="25" placeholder="Age">
+        <br>
+        <button onclick="generateAndRegister()">Generate Proof & Register Token</button>
+        <pre id="out2"></pre>
+    </div>
+
+    <!-- STEP 3 -> Bank Verification -->
+    <div class="card id="step3">
+        <h3>3. Bank Verification</h3>
+        <p>Proves the bank can verify the proof mathematically without seeing Aadhaar.</p>
+        <button class="success" onclick="verifyBank()">Simulate Bank Verifying User</button>
+        <pre id="out3"></pre>
+    </div>
+
+    <!-- STEP 4 -> Revocation -->
+    <div class="card id="step4">
+        <h3>4. DPDP Revocation Feature</h3>
+        <p>Proves user can instantly kill the bank's access using WebAuthn/Blockchain trigger.</p>
+        <button class="danger" onclick="revokeAccess()">REVOKE IDENTITY ACCESS</button>
+        <pre id="out4"></pre>
+    </div>
+
+    <script>
+        const BASE_URL = 'http://localhost:5000/api';
+        let currentTokenId = null;
+        let currentProof = null;
+        let currentSignals = null;
+
+        async function uploadXml() {
+            const fileInput = document.getElementById('xmlFile');
+            if(!fileInput.files[0]) {
+                document.getElementById('out1').innerText = "Please select an XML file!";
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('aadhaarXml', fileInput.files[0]);
+
+            try {
+                document.getElementById('out1').innerText = "Uploading & verifying signature...";
+                const res = await fetch(`${BASE_URL}/upload-xml`, {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                document.getElementById('out1').innerText = JSON.stringify(data, null, 2);
+            } catch(e) {
+                document.getElementById('out1').innerText = "Error: " + e.message;
+            }
+        }
+
+        async function generateAndRegister() {
+            const age = document.getElementById('ageInput').value;
+            try {
+                document.getElementById('out2').innerText = "Generating ZK Proof and calling Algorand...";
+                // 1. ZK
+                let res = await fetch(`${BASE_URL}/zk/generate-proof`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ age, state: 1 })
+                });
+                let zkData = await res.json();
+                
+                currentTokenId = zkData.tokenId;
+                currentProof = zkData.proof;
+                currentSignals = zkData.publicSignals;
+
+                // 2. Register
+                let regRes = await fetch(`${BASE_URL}/algorand/register-token`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ tokenId: currentTokenId, proof: currentProof })
+                });
+                let regData = await regRes.json();
+                
+                document.getElementById('out2').innerText = "✅ ZK Proof Generated\n✅ Registered on Blockchain\n\nBlockchain Storage:\n" + JSON.stringify(regData.storedData, null, 2);
+            } catch(e) {
+                document.getElementById('out2').innerText = "Error: " + e.message;
+            }
+        }
+
+        async function verifyBank() {
+            if(!currentTokenId) return alert("Generate proof first!");
+            try {
+                document.getElementById('out3').innerText = "Bank checking proof...";
+                let res = await fetch(`${BASE_URL}/verifier/verify`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ tokenId: currentTokenId, proof: currentProof, publicSignals: currentSignals })
+                });
+                let data = await res.json();
+                document.getElementById('out3').innerText = JSON.stringify(data, null, 2);
+            } catch(e) {
+                document.getElementById('out3').innerText = "Error: " + e.message;
+            }
+        }
+
+        async function revokeAccess() {
+            if(!currentTokenId) return alert("Generate proof first!");
+            try {
+                document.getElementById('out4').innerText = "Triggering Algorand Revocation...";
+                let res = await fetch(`${BASE_URL}/algorand/revoke-token`, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ tokenId: currentTokenId })
+                });
+                let data = await res.json();
+                document.getElementById('out4').innerText = JSON.stringify(data, null, 2);
+            } catch(e) {
+                document.getElementById('out4').innerText = "Error: " + e.message;
+            }
+        }
+    </script>
+</body>
+</html>
