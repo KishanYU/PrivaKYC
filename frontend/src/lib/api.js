@@ -17,15 +17,24 @@ import {
   mockEmergencyRevokeToken,
 } from './fallback';
 
+const getBaseUrl = () => {
+  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  if (envUrl && envUrl.startsWith('http')) return envUrl;
+  // If we are on Vercel, force the Render URL fallback
+  if (window.location.hostname.includes('vercel.app')) return 'https://privakyc.onrender.com/api';
+  return envUrl || 'https://privakyc.onrender.com/api';
+};
+
+const apiBaseUrl = getBaseUrl();
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://privakyc.onrender.com/api',
+  baseURL: apiBaseUrl,
   timeout: 12000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://privakyc.onrender.com/api';
 const hasBackend = Boolean(apiBaseUrl);
 const n8nRevokeWebhook = import.meta.env.VITE_N8N_REVOKE_WEBHOOK || null;
 
