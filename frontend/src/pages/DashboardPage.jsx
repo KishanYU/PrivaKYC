@@ -498,7 +498,6 @@ export default function DashboardPage() {
       if (walletStatus === 'success' && address) {
         const buildResponse = await buildRevokeTxn({ tokenId: selectedToken.tokenId, sender: address });
         
-        // DEMO FALLBACK: Skip Para Wallet signing if the backend returned a demo transaction
         if (buildResponse.unsignedTxn === "DEMO_UNSIGNED_BYTES") {
           console.log("[Demo Mode] Bypassing Para Wallet signature for revocation.");
           result = await revokeToken(selectedToken.tokenId, 'compromise_detected', address);
@@ -532,14 +531,43 @@ export default function DashboardPage() {
       setRevokeMessage('Token successfully revoked on Algorand.');
       toast.success('Token revoked successfully.');
 
-      // Use n8n status from backend
       setN8nStatus(result.n8nStatus ? 'success' : 'error');
 
     } catch (error) {
+      const isTimeout = error.message?.includes('timeout') || error.code === 'ECONNABORTED';
       setRevokeStatus('error');
-      const details = error?.response?.data?.message || error?.message || 'Revocation failed. Please try again.';
-      setRevokeMessage(details);
-      toast.error(details);
+      
+      if (isTimeout) {
+        setRevokeMessage(
+          <div>
+            <p className="font-bold">Request timed out, but revocation may still be processing on-chain.</p>
+            <p className="mt-1">You can verify the status directly on the Algorand Testnet:</p>
+            <div className="mt-3 flex gap-2">
+              <a 
+                href={`https://testnet.algoscan.app/app/761383581`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="rounded-lg bg-slate-900 px-3 py-1.5 text-[10px] font-bold text-white hover:bg-slate-800"
+              >
+                Check Revocation Registry
+              </a>
+              <a 
+                href={`https://testnet.algoscan.app/address/${address}`} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-[10px] font-bold text-slate-700 hover:bg-slate-50"
+              >
+                View My Wallet Txns
+              </a>
+            </div>
+          </div>
+        );
+        toast.error('Connection slow. Check Algoscan for status.');
+      } else {
+        const details = error?.response?.data?.message || error?.message || 'Revocation failed. Please try again.';
+        setRevokeMessage(details);
+        toast.error(details);
+      }
     }
   };
 
