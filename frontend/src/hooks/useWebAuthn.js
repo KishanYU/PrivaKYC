@@ -23,8 +23,11 @@ export function useWebAuthn() {
           name: 'user@example.com',
           displayName: 'PrivaKYC User',
         },
-        pubKeyCredParams: [{ alg: -7, type: 'public-key' }],
-        timeout: 60000,
+        pubKeyCredParams: [
+          { alg: -7, type: 'public-key' },   // ES256 (ECDSA with P-256)
+          { alg: -257, type: 'public-key' }  // RS256 (RSASSA-PKCS1-v1_5 with SHA-256)
+        ],
+        timeout: 90000,
         attestation: 'direct',
       };
 
