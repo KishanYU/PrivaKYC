@@ -18,14 +18,15 @@ import {
 } from './fallback';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || undefined,
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://privakyc.onrender.com/api',
   timeout: 12000,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-const hasBackend = Boolean(import.meta.env.VITE_API_BASE_URL);
+const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || 'https://privakyc.onrender.com/api';
+const hasBackend = Boolean(apiBaseUrl);
 const n8nRevokeWebhook = import.meta.env.VITE_N8N_REVOKE_WEBHOOK || null;
 
 const triggerN8nRevokeWebhook = async (payload) => {
@@ -171,13 +172,15 @@ export const revokeToken = async (tokenId, reason = 'user_request', wallet = nul
     result = response.data;
   }
 
-  await triggerN8nRevokeWebhook({
-    wallet,
-    tokenId,
-    reason,
-    revokedAt: new Date().toISOString(),
-    source: hasBackend ? 'backend-revoke' : 'sandbox-revoke',
-  });
+  if (!hasBackend) {
+    await triggerN8nRevokeWebhook({
+      wallet,
+      tokenId,
+      reason,
+      revokedAt: new Date().toISOString(),
+      source: 'sandbox-revoke',
+    });
+  }
 
   return result;
 };
@@ -197,13 +200,16 @@ export const emergencyRevokeToken = async (mnemonic, wallet = null) => {
 
   const response = await api.post('/algorand/emergency-revoke', { mnemonic });
   const result = response.data;
-  await triggerN8nRevokeWebhook({
-    wallet,
-    tokenId: result?.tokenId || null,
-    reason: 'emergency_revoke',
-    revokedAt: new Date().toISOString(),
-    source: 'backend-emergency-revoke',
-  });
+  // If backend exists, n8n is triggered by the backend
+  if (!hasBackend) {
+    await triggerN8nRevokeWebhook({
+      wallet,
+      tokenId: result?.tokenId || null,
+      reason: 'emergency_revoke',
+      revokedAt: new Date().toISOString(),
+      source: 'sandbox-emergency-revoke',
+    });
+  }
   return result;
 };
 

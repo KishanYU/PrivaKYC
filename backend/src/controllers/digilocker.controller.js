@@ -24,9 +24,9 @@ const getAuthUrl = async (req, res, next) => {
         // This is the OFFICIAL Government of India DigiLocker OIDC endpoint
         // We use a placeholder client_id to demonstrate the integration structure.
         const CLIENT_ID = "PRIVA-KYC-HACKATHON-DEMO";
-        const REDIRECT_URI = "http://localhost:5000/api/digilocker/callback";
+        const callbackUrl = process.env.DIGILOCKER_CALLBACK_URL || `${process.env.CLIENT_URL}/api/digilocker/callback`;
         
-        const authUrl = `https://digilocker.meripehchaan.gov.in/public/oauth2/1/authorize?response_type=code&client_id=${CLIENT_ID}&state=${state}&redirect_uri=${REDIRECT_URI}`;
+        const authUrl = `https://digilocker.meripehchaan.gov.in/public/oauth2/1/authorize?response_type=code&client_id=${CLIENT_ID}&state=${state}&redirect_uri=${callbackUrl}`;
 
         console.log(`[DigiLocker] Redirecting to OFFICIAL Government Gateway: ${authUrl}`);
 
@@ -68,7 +68,8 @@ const handleCallback = async (req, res, next) => {
 
         // We instantly take the DigiLocker data and route it straight to our ZK Proof Generator
         // so that the Bank/Database STILL never sees the raw data! Data minimization at its best!
-        res.redirect(`http://localhost:4175/dashboard?code=${code}&state=${state}`);
+        const clientUrl = process.env.CLIENT_URL || "https://priva-kyc.vercel.app";
+        res.redirect(`${clientUrl}/dashboard?code=${code}&state=${state}`);
     } catch (error) {
         next(error);
     }
@@ -80,8 +81,8 @@ const verifyCode = async (req, res, next) => {
     try {
         const { code } = req.query;
         
-        // Only hit Sandbox if it's a real entity ID (Mock codes start with HACKATHON_DEMO_CODE)
-        if (code && !code.startsWith('HACKATHON_DEMO_CODE') && code.length > 20) {
+        // Only hit Sandbox if it's a real entity ID (Mock codes start with HACKATHON or are demo strings)
+        if (code && !code.startsWith('HACKATHON') && !code.includes('mock') && code.length > 25) {
             const sandboxClient = require('../modules/ekyc/sandboxClient');
             console.log(`[DigiLocker] Fetching real data for entity: ${code}`);
             

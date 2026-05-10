@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import api from '../../lib/api';
 import FraudDashboard from './FraudDashboard';
 import AgentMemory from './AgentMemory';
 
@@ -46,7 +46,7 @@ const SuspiciousVerification = () => {
     // If the proof is revoked, trigger a Snowflake fraud alert instantly
     if (customSignals.revokedProofReuse) {
       try {
-        await axios.post('/api/sponsors/fraud/log', {
+        await api.post('/sponsors/fraud/log', {
           alertType: 'REVOKED_PROOF_REUSE',
           bankId: 'Partner Institution #44',
           nullifierHash: userId,
@@ -59,7 +59,7 @@ const SuspiciousVerification = () => {
 
     try {
       // 1. Send ZK Proof verification request to backend Risk Engine
-      const riskRes = await axios.post('/api/sponsors/verify-proof', {
+      const riskRes = await api.post('/sponsors/verify-proof', {
         userId,
         signals: customSignals
       });
@@ -77,7 +77,7 @@ const SuspiciousVerification = () => {
         setVerificationState('verifying');
         setStatus('idle');
         
-        const challengeRes = await axios.post('/api/sponsors/voice/challenge', { userId });
+        const challengeRes = await api.post('/sponsors/voice/challenge', { userId });
         setChallenge(challengeRes.data.challenge);
       }
     } catch (err) {
@@ -157,7 +157,7 @@ const SuspiciousVerification = () => {
         formData.append('fallbackTranscript', transcriptText);
       }
 
-      const res = await axios.post('/api/sponsors/voice/verify', formData, {
+      const res = await api.post('/sponsors/voice/verify', formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 

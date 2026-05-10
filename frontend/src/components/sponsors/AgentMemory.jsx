@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../lib/api';
 
 const AgentMemory = () => {
   const [logs, setLogs] = useState([]);
@@ -9,7 +9,7 @@ const AgentMemory = () => {
   const fetchLogs = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.get('/api/sponsors/memory/logs');
+      const res = await api.get('/sponsors/memory/logs');
       setLogs(res.data.data || []);
       setError(null);
     } catch (err) {

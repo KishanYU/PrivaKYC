@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../../lib/api';
 
 const FraudDashboard = () => {
   const [heatmapData, setHeatmapData] = useState(null);
@@ -12,7 +12,7 @@ const FraudDashboard = () => {
   const fetchHeatmap = async () => {
     setIsLoading(true);
     try {
-      const res = await axios.get('/api/sponsors/fraud/heatmap?minutes=60');
+      const res = await api.get('/sponsors/fraud/heatmap?minutes=60');
       setHeatmapData(res.data.data);
       setLastUpdated(new Date());
       setError(null);
@@ -38,7 +38,7 @@ const FraudDashboard = () => {
   const simulateFraudEvent = async () => {
     setIsSimulating(true);
     try {
-      await axios.post('/api/sponsors/fraud/log', {
+      await api.post('/sponsors/fraud/log', {
         alertType: 'TOKEN_REUSE',
         bankId: 'HDFC',
         nullifierHash: '0x' + Math.random().toString(16).substring(2, 8),

@@ -47,6 +47,7 @@ export default function DashboardPage() {
   const [otpTxnId, setOtpTxnId] = useState('');
   const [otpPhase, setOtpPhase] = useState('idle'); // idle, requesting, verify, complete
   const [otpMessage, setOtpMessage] = useState('');
+  const [n8nStatus, setN8nStatus] = useState('idle'); // idle, pending, success
 
   const normalizeToken = (token, index) => ({
     tokenId: token.tokenId,
@@ -450,20 +451,8 @@ export default function DashboardPage() {
       setEmergencyMessage(`EMERGENCY SUCCESS. Identity successfully nuked via Algorand (TxID: ${result.revokeTxId}). No bank can authorise using your lost token anymore.`);
       toast.success('Identity globally revoked!');
       
-      // Trigger n8n Automation Workflow
-      if (import.meta.env.VITE_N8N_REVOKE_WEBHOOK) {
-        fetch(import.meta.env.VITE_N8N_REVOKE_WEBHOOK, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            wallet: address || 'emergency-system',
-            tokenId: 'EMERGENCY_REVOKE',
-            txId: result.revokeTxId,
-            revokedAt: new Date().toISOString(),
-            reason: 'Compromise detected (Emergency)'
-          }),
-        }).catch(e => console.error("n8n automation trigger failed", e));
-      }
+      // Use n8n status from backend
+      setN8nStatus(result.n8nStatus ? 'success' : 'error');
 
       await loadTokens();
     } catch (err) {
@@ -543,20 +532,8 @@ export default function DashboardPage() {
       setRevokeMessage('Token successfully revoked on Algorand.');
       toast.success('Token revoked successfully.');
 
-      // Trigger n8n Automation Workflow
-      if (import.meta.env.VITE_N8N_REVOKE_WEBHOOK) {
-        fetch(import.meta.env.VITE_N8N_REVOKE_WEBHOOK, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            wallet: address || 'system',
-            tokenId: selectedToken.tokenId,
-            txId: txId,
-            revokedAt: revokedAt,
-            reason: revocationReason
-          }),
-        }).catch(e => console.error("n8n automation trigger failed", e));
-      }
+      // Use n8n status from backend
+      setN8nStatus(result.n8nStatus ? 'success' : 'error');
 
     } catch (error) {
       setRevokeStatus('error');
@@ -1160,6 +1137,8 @@ export default function DashboardPage() {
         onClose={closeConfirmModal}
         onConfirm={handleConfirmRevoke}
         confirmDisabled={revokeStatus === 'pending'}
+        walletConnected={walletStatus === 'success'}
+        n8nStatus={n8nStatus}
       />
     </main>
   );

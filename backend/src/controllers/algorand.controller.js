@@ -1,8 +1,9 @@
 const crypto = require('crypto');
+const algosdk = require('algosdk');
 const bip39 = require('bip39');
 const Token = require('../models/Token');
 const { triggerRevocationWebhook } = require('../services/n8n/n8nService');
-const { buildNote, buildUnsignedTxn, submitSignedTxn, getTxnInfo } = require('../services/algorand/algorandService');
+const { buildNote, buildUnsignedTxn, submitSignedTxn, getTxnInfo, getAlgodClient } = require('../services/algorand/algorandService');
 const { logFraudAlert, logToAuditTrail } = require('../modules/sponsor');
 const { sendRevocationAlert } = require('../services/emailService');
 
@@ -250,12 +251,13 @@ const revokeToken = async (req, res, next) => {
         await token.save();
 
         // Trigger n8n Webhook (best-effort)
-        await triggerRevocationWebhook({
+        const n8nStatus = await triggerRevocationWebhook({
             event: "IDENTITY_REVOKED",
             tokenId: token.tokenId,
             timestamp: new Date().toISOString(),
             txId,
-            blockchain: "Algorand Testnet"
+            blockchain: "Algorand Testnet",
+            reason: "User Revoked Identity"
         });
 
         // Send Email Alert to Bank
@@ -277,7 +279,8 @@ const revokeToken = async (req, res, next) => {
             success: true,
             message: "Identity Access Revoked Successfully via Algorand",
             txId,
-            status: "REVOKED"
+            status: "REVOKED",
+            n8nStatus
         });
     } catch (error) {
         next(error);
@@ -289,6 +292,7 @@ const revokeToken = async (req, res, next) => {
 const buildRevokeTxn = async (req, res, next) => {
     try {
         const { tokenId, sender } = req.body;
+        console.log(`[Algorand] Building revoke txn for token: ${tokenId}, sender: ${sender}`);
 
         if (!tokenId || !sender) {
             return res.status(400).json({ 
@@ -305,7 +309,8 @@ const buildRevokeTxn = async (req, res, next) => {
         const assetId = token.assetId;
         if (!assetId) {
             // Fallback to simple metadata transaction if no ASA was created
-            const receiver = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HQN4";
+            const receiver = process.env.ALGOD_REGISTRY_ADDRESS || "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAY5HQN4";
+            console.log(`[Algorand] No ASA found. Using registry receiver: ${receiver}`);
             const note = buildNote({ action: 'REVOKE', tokenId });
             const { txId, unsignedTxn } = await buildUnsignedTxn({ sender, receiver, note });
             return res.status(200).json({ success: true, txId, unsignedTxn, message: "No ASA found, performing metadata revocation." });
@@ -360,7 +365,7 @@ const submitRevokeTxn = async (req, res, next) => {
         token.revokeTxId = txId;
         await token.save();
 
-        await triggerRevocationWebhook({
+        const n8nStatus = await triggerRevocationWebhook({
             event: "IDENTITY_REVOKED",
             tokenId: token.tokenId,
             timestamp: new Date().toISOString(),
@@ -372,7 +377,8 @@ const submitRevokeTxn = async (req, res, next) => {
             success: true,
             message: "Identity Access Revoked Successfully via Algorand",
             txId,
-            status: "REVOKED"
+            status: "REVOKED",
+            n8nStatus
         });
     } catch (error) {
         next(error);
@@ -409,8 +415,9 @@ const emergencyRevoke = async (req, res, next) => {
         token.revokeTxId = `EMERGENCY_REVOKE_${crypto.randomBytes(4).toString('hex').toUpperCase()}`;
         await token.save();
 
+        let n8nStatus = false;
         if (process.env.N8N_WEBHOOK_URL) {
-            await triggerRevocationWebhook({
+            n8nStatus = await triggerRevocationWebhook({
                 event: "EMERGENCY_IDENTITY_REVOKED",
                 tokenId: token.tokenId,
                 timestamp: new Date().toISOString(),
@@ -426,7 +433,8 @@ const emergencyRevoke = async (req, res, next) => {
             success: true,
             message: "EMERGENCY REVOCATION SUCCESSFUL. Your identity has been instantly invalidated across all networks via Algorand.",
             revokeTxId: token.revokeTxId,
-            tokenId: token.tokenId
+            tokenId: token.tokenId,
+            n8nStatus
         });
 
     } catch (error) {
