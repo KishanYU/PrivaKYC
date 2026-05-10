@@ -1,3 +1,9 @@
+/**
+ * @file digilocker.controller.js
+ * @description Controller for handling Government of India DigiLocker OAuth2 flows and identity data extraction.
+ * @module controllers/digilocker
+ */
+
 const express = require('express');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
@@ -15,8 +21,14 @@ const hasRealDigiLockerCredentials =
     !DIGILOCKER_CLIENT_SECRET.includes('mock') &&
     !DIGILOCKER_CLIENT_SECRET.includes('hackathon');
 
-// @route   GET /api/digilocker/auth
-// @desc    Generates the OFFICIAL DigiLocker OAuth2 login URL
+/**
+ * @function getAuthUrl
+ * @description Generates the official DigiLocker OAuth2 authorization URL for user login.
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware
+ */
 const getAuthUrl = async (req, res, next) => {
     try {
         const state = crypto.randomBytes(16).toString('hex');
@@ -40,8 +52,15 @@ const getAuthUrl = async (req, res, next) => {
     }
 };
 
-// @route   GET /api/digilocker/callback
-// @desc    Handles the redirect from DigiLocker, exchanges code for access token
+/**
+ * @function handleCallback
+ * @description Handles the OAuth2 callback from DigiLocker, exchanges the authorization code for an access token, 
+ * and redirects the user back to the frontend dashboard.
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware
+ */
 const handleCallback = async (req, res, next) => {
     try {
         const { code, state } = req.query;

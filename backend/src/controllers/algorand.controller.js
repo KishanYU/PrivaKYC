@@ -1,3 +1,10 @@
+/**
+ * @file algorand.controller.js
+ * @description Controller for managing Algorand blockchain interactions, including identity tokenization, 
+ * sponsored minting, and verifiable revocation.
+ * @module controllers/algorand
+ */
+
 const crypto = require('crypto');
 const algosdk = require('algosdk');
 const bip39 = require('bip39');
@@ -7,8 +14,21 @@ const { buildNote, buildUnsignedTxn, submitSignedTxn, getTxnInfo, getAlgodClient
 const { logFraudAlert, logToAuditTrail } = require('../modules/sponsor');
 const { sendRevocationAlert } = require('../services/emailService');
 
-// @route   POST /api/algorand/register-token
-// @desc    Register the ZK token on Algorand (Real if signedTxn provided, else demo)
+/**
+ * @function registerToken
+ * @description Registers a Zero-Knowledge proof token on the Algorand blockchain.
+ * Supports both direct user-signed transactions and backend-sponsored minting.
+ * Generates a BIP39 recovery phrase for emergency identity revocation.
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.tokenId - Unique identifier for the KYC token
+ * @param {Object} req.body.proof - The ZK Proof object
+ * @param {string} [req.body.sender] - Algorand address of the sender
+ * @param {string} [req.body.signedTxn] - Optional signed transaction from the user
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware
+ */
 const registerToken = async (req, res, next) => {
     try {
         const { tokenId, proof, sender, signedTxn } = req.body;
@@ -225,8 +245,19 @@ const submitRegisterTxn = async (req, res, next) => {
     }
 };
 
-// @route   POST /api/algorand/revoke-token
-// @desc    Trigger revocation via Algorand/n8n (Real if signedTxn provided, else demo)
+/**
+ * @function revokeToken
+ * @description Triggers the revocation of an identity token.
+ * This process updates the Algorand blockchain status, notifies third-party systems via n8n, 
+ * sends email alerts to participating banks, and logs the event to the audit trail.
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} req.body - Request body
+ * @param {string} req.body.tokenId - The unique identifier of the token to revoke
+ * @param {string} [req.body.signedTxn] - Optional signed Algorand transaction
+ * @param {Object} res - Express response object
+ * @param {Function} next - Express next middleware
+ */
 const revokeToken = async (req, res, next) => {
     try {
         const { tokenId, signedTxn } = req.body;
